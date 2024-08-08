@@ -1,4 +1,27 @@
-﻿Public Class Form1
+﻿Imports System.IO
+Public Class Form1
+    Sub cargarDatos()
+        Dim archivo As New FileStream("personas.csv", FileMode.OpenOrCreate, FileAccess.Read)
+        Dim lector As New StreamReader(archivo)
+        While Not lector.EndOfStream
+            Dim linea As String = lector.ReadLine
+            Dim datos() As String = linea.Split(",")
+            Dim persona As New Persona With {.nombre = datos(1), .apellido = datos(2), .anioNacimiento = datos(3)}
+            dicpersonal.Add(CInt(datos(0)), persona)
+        End While
+        lector.Close()
+        archivo.Close()
+    End Sub
+    Sub guardarDatos()
+        Dim archivo As New FileStream("personas.csv", FileMode.Create, FileAccess.Write)
+        Dim escritor As New StreamWriter(archivo)
+        For Each persona In dicpersonal
+            escritor.WriteLine(persona.Key & "," & persona.Value.nombre & "," & persona.Value.apellido & "," & persona.Value.anioNacimiento)
+
+        Next
+        escritor.Close()
+        archivo.Close()
+    End Sub
     Public Structure Persona
         Public nombre As String
         Public apellido As String
@@ -16,11 +39,21 @@
     End Sub
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        cargarDatos()
+        For Each persona In dicpersonal
+            Dim item As New ListViewItem
+            item.Text = persona.Key
+            item.SubItems.Add(persona.Value.nombre)
+            item.SubItems.Add(persona.Value.apellido)
+            item.SubItems.Add(persona.Value.anioNacimiento)
+            ListView1.Items.Add(item)
 
+        Next
     End Sub
 
     Private Sub btnGuardar_Click(sender As Object, e As EventArgs) Handles btnGuardar.Click
         dicpersonal.Add(CInt(txtDni.Text), New Persona With {.nombre = txtNombre.Text, .apellido = txtApellido.Text, .anioNacimiento = CInt(txtAnioNacimiento.Text)})
+        guardarDatos()
         ListView1.Items.Clear()
         For Each persona In dicpersonal
             Dim item As New ListViewItem
